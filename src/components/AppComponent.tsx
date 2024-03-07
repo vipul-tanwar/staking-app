@@ -1,24 +1,29 @@
 "use client";
-import { ethers } from "ethers";
+import { Signer, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import { ExternalProvider } from "@ethersproject/providers";
 import stakingContractJson from "@/data/stakingContract.json";
 import tokenContractJson from "@/data/tokenStakingContract.json";
 import { convertVal } from "@/utils/helper";
 import ContractRead from "./ReadContract";
+import Button from "./common/Button";
+import FunctionDetails from "./layout/FunctionDetails";
+import Loader from "./common/Loader";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
   const tokenABI = tokenContractJson.abi;
   const stakingContractAddress = stakingContractJson.address;
   const stakingContractABI = stakingContractJson.abi;
+
   const provider = new ethers.providers.JsonRpcProvider(
     "https://polygon-mumbai.infura.io/v3/219b1d1b9fd243aa9f83bf879622569d"
   );
+
   const [walletAddress, setWalletAddress] = useState();
-  const [signer, setSigner]: any = useState();
+  const [signer, setSigner] = useState<Signer | null>(null);
   const [amount, setAmount] = useState("");
-  const [rewardDetails, setRewardDetails] = useState();
+  const [rewardDetails, setRewardDetails]: any = useState();
 
   async function getSigner(address: string) {
     try {
@@ -56,12 +61,12 @@ const AppComponent = () => {
   async function stakeTokens() {
     if (!amount) return;
     try {
-      const token = new ethers.Contract(tokenAddress, tokenABI, signer);
+      const token = new ethers.Contract(tokenAddress, tokenABI, signer!);
 
       const stakingContract = new ethers.Contract(
         stakingContractAddress,
         stakingContractABI,
-        signer
+        signer!
       );
       const amountWei = amount;
       // const amountWei = ethers.utils.parseUnits(amount, "ether");
@@ -83,7 +88,7 @@ const AppComponent = () => {
       const stakingContract = new ethers.Contract(
         stakingContractAddress,
         stakingContractABI,
-        signer
+        signer!
       );
       const txn = await stakingContract.unstake();
       await txn.wait();
@@ -98,7 +103,7 @@ const AppComponent = () => {
       const stakingContract = new ethers.Contract(
         stakingContractAddress,
         stakingContractABI,
-        signer
+        signer!
       );
       const text = await stakingContract.getRewardDetails();
       console.log("avaialble reqrds", text);
@@ -145,13 +150,15 @@ const AppComponent = () => {
     }
   }
 
+  useEffect(()=> {
+    getRewardBalance();
+  }, [signer])
+
   return (
-    <div className=" py-4" >
+    <div className=" py-4">
       <div className=" flex flex-col gap-2 ">
-        {" "}
         <div>Wallet Address: {walletAddress}</div>
         <div>
-          {" "}
           Token Addres :{" "}
           <a
             className=" text-blue-600 "
@@ -180,7 +187,7 @@ const AppComponent = () => {
       >
         Connet Wallet
       </button> */}
-      <div className=" my-3 " >
+      <div className=" my-3 ">
         {" "}
         <input
           type="text"
@@ -190,30 +197,24 @@ const AppComponent = () => {
           onChange={(e) => setAmount(e.target.value)}
         />
         <div className=" grid grid-cols-3 gap-4 ">
-          <button
-            className=" bg-blue-600 py-2 "
+          <Button
             onClick={() => {
               stakeTokens();
             }}
-          >
-            Staking{" "}
-          </button>
-          <button
-            className=" bg-blue-600 py-2  "
+            label="Staking"
+          />
+          <Button
             onClick={() => {
               unstakeTokens();
             }}
-          >
-            Unstaking{" "}
-          </button>
-          <button
-            className=" bg-blue-600 py-2  "
+            label="Unstaking"
+          />
+          <Button
             onClick={() => {
               claimRewards();
             }}
-          >
-            Claim Reward
-          </button>
+            label="Claim Reward"
+          />
         </div>
       </div>
       {/* <button
@@ -224,23 +225,15 @@ const AppComponent = () => {
       >
         Detdetails
       </button> */}
-      <div className=" my-3 " >
-        {rewardDetails && (
-          <div className=" border rounded-md  ">
-            <div className=" text-center rounded-md text-black font-bold text-lg mb-4 py-2 bg-slate-400 " >Reward Details</div>
-            <div className=" p-4 ">
-              {Object.keys(rewardDetails).map((key) => {
-                return (
-                  <div className="" key={key}>
-                    {key}: {convertVal(rewardDetails[key])}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      <div className=" my-3 ">
+        {walletAddress &&  (
+          <FunctionDetails
+            functionName="Reward Details"
+            functionData={rewardDetails}
+          />
         )}
       </div>
-      <ContractRead />
+      {walletAddress && <ContractRead provider={provider} walletAddress={walletAddress} />}
     </div>
   );
 };
