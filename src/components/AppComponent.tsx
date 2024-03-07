@@ -4,11 +4,10 @@ import React, { useEffect, useState } from "react";
 import { ExternalProvider } from "@ethersproject/providers";
 import stakingContractJson from "@/data/stakingContract.json";
 import tokenContractJson from "@/data/tokenStakingContract.json";
-import { convertVal } from "@/utils/helper";
 import ContractRead from "./ReadContract";
 import Button from "./common/Button";
 import FunctionDetails from "./layout/FunctionDetails";
-import Loader from "./common/Loader";
+import { RewardDetails } from "@/types/CommonInterface";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
@@ -20,10 +19,10 @@ const AppComponent = () => {
     "https://polygon-mumbai.infura.io/v3/219b1d1b9fd243aa9f83bf879622569d"
   );
 
-  const [walletAddress, setWalletAddress] = useState();
+  const [walletAddress, setWalletAddress] = useState<string>();
   const [signer, setSigner] = useState<Signer | null>(null);
-  const [amount, setAmount] = useState("");
-  const [rewardDetails, setRewardDetails]: any = useState();
+  const [amount, setAmount] = useState<string>("");
+  const [rewardDetails, setRewardDetails] = useState<RewardDetails | null>();
 
   async function getSigner(address: string) {
     try {
@@ -32,10 +31,9 @@ const AppComponent = () => {
       );
       const signer = provider.getSigner(address);
       setSigner(signer);
-      console.log("Signer:", signer);
-      return signer;
     } catch (_) {}
   }
+
   async function requestMetamask() {
     if (window.ethereum) {
       console.log("MetaMask is installed");
@@ -43,7 +41,6 @@ const AppComponent = () => {
         const accounts = await (window.ethereum as ExternalProvider).request!({
           method: "eth_requestAccounts",
         });
-        console.log("Connected account:", accounts[0]);
         setWalletAddress(accounts[0]);
         getSigner(accounts[0]);
       } catch (error) {
@@ -59,7 +56,7 @@ const AppComponent = () => {
   }, []);
 
   async function stakeTokens() {
-    if (!amount) return;
+    if (!amount) return alert("Please enter amount");
     try {
       const token = new ethers.Contract(tokenAddress, tokenABI, signer!);
 
@@ -76,7 +73,7 @@ const AppComponent = () => {
 
       tx = await stakingContract.stake(amountWei);
       await tx.wait();
-
+      alert(`Staked Tokens : ${amount}`);
       console.log(`Staked Tokens : ${amount}`);
     } catch (error) {
       console.error(error);
@@ -90,11 +87,28 @@ const AppComponent = () => {
         stakingContractABI,
         signer!
       );
+      debugger;
       const txn = await stakingContract.unstake();
       await txn.wait();
+      alert("Unstaked tokens");
       console.log("Unstaked tokens");
     } catch (error) {
-      console.error(error);
+      console.log(error);
+    }
+  }
+
+  async function claimRewards() {
+    try {
+      const stakingContract = new ethers.Contract(
+        stakingContractAddress,
+        stakingContractABI,
+        signer!
+      );
+      const txn = await stakingContract.claimRewards();
+      await txn.wait();
+      console.log("Claimed rewards");
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -105,54 +119,20 @@ const AppComponent = () => {
         stakingContractABI,
         signer!
       );
-      const text = await stakingContract.getRewardDetails();
-      console.log("avaialble reqrds", text);
+      const rewardDetails = await stakingContract.getRewardDetails();
 
-      console.log("accRewardPerShare", convertVal(text.accRewardPerShare));
-      console.log("lastCheckpoint", convertVal(text.lastCheckpoint));
-      console.log("rewardPerBlock", convertVal(text.rewardPerBlock));
-      // setRewardDetails({
-      //   accRewardPerShare: text.accRewardPerShare,
-      //   lastCheckpoint: text.lastCheckpoint,
-      //   rewardPerBlock: text.rewardPerBlock,
-      // });
       setRewardDetails({
-        accRewardPerShare: text.accRewardPerShare,
-        lastCheckpoint: text.lastCheckpoint,
-        rewardPerBlock: text.rewardPerBlock,
+        accRewardPerShare: rewardDetails.accRewardPerShare,
+        lastCheckpoint: rewardDetails.lastCheckpoint,
+        rewardPerBlock: rewardDetails.rewardPerBlock,
       });
-      return {
-        accRewardPerShare: text.accRewardPerShare,
-        lastCheckpoint: text.lastCheckpoint,
-        rewardPerBlock: text.rewardPerBlock,
-      };
-    } catch (_) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
   useEffect(() => {
     getRewardBalance();
-  }, []);
-  async function claimRewards() {
-    try {
-      const stakingContract = new ethers.Contract(
-        stakingContractAddress,
-        stakingContractABI,
-        signer
-      );
-      console.log("stakingContract", stakingContract);
-      getRewardBalance();
-      // const gasLimit = await stakingContract.estimateGas.claimRewards();
-      // console.log("Gas Limit:", await stakingContract.claimRewards({ gasLimit: 500000 }));
-      // const txn = await stakingContract.claimRewards(gasLimit);
-      // await txn.wait();
-      console.log("Claimed rewards");
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  useEffect(()=> {
-    getRewardBalance();
-  }, [signer])
+  }, [signer]);
 
   return (
     <div className=" py-4">
@@ -226,14 +206,16 @@ const AppComponent = () => {
         Detdetails
       </button> */}
       <div className=" my-3 ">
-        {walletAddress &&  (
+        {walletAddress && (
           <FunctionDetails
             functionName="Reward Details"
             functionData={rewardDetails}
           />
         )}
       </div>
-      {walletAddress && <ContractRead provider={provider} walletAddress={walletAddress} />}
+      {walletAddress && (
+        <ContractRead provider={provider} walletAddress={walletAddress} />
+      )}
     </div>
   );
 };

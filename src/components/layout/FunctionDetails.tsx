@@ -1,18 +1,15 @@
 import { convertVal } from "@/utils/helper";
 import React from "react";
 import Loader from "../common/Loader";
+import { FunctionDetailsProp } from "@/types/LayoutInterface";
 
 const FunctionDetails = ({
   functionName,
   functionData,
-  className
-}: {
-  functionName: string;
-  functionData: any;
-  className?: string;
-}) => {
+  className,
+}: FunctionDetailsProp) => {
   return (
-    <div className={ `${className} border rounded-md `}>
+    <div className={`${className} border rounded-md `}>
       <div className=" text-center rounded-md text-black font-bold text-xl mb-4 py-2 bg-slate-400 ">
         {functionName}
       </div>
