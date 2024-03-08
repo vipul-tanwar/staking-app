@@ -2,7 +2,7 @@
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import stakingContractJson from "@/data/stakingContract.json";
-import FunctionDetails from "./layout/FunctionDetails";
+import FunctionDetails from "../layout/FunctionDetails";
 import {
   ContractReadProps,
   StakeDetailsInter,

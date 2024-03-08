@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ExternalProvider } from "@ethersproject/providers";
 import stakingContractJson from "@/data/stakingContract.json";
 import tokenContractJson from "@/data/tokenStakingContract.json";
-import ContractRead from "./ReadContract";
+import ContractRead from "./section/ReadContract";
 import Button from "./common/Button";
 import FunctionDetails from "./layout/FunctionDetails";
 import { RewardDetails } from "@/types/CommonInterface";
@@ -14,6 +14,9 @@ import {
   stakeTokens,
   unstakeTokens,
 } from "@/api/callAppComponent";
+import ContractDetails from "./section/ContractDetails";
+import ConnectWallet from "./common/ConnectWallet";
+import WalletDetails from "./section/WalletDetails";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
@@ -116,56 +119,14 @@ const AppComponent = () => {
   return (
     <div className=" py-4">
       <div className=" flex flex-col gap-2 ">
-        <div className=" flex justify-center ">
-          {connected ? (
-            <Button
-              onClick={() => {
-                disconnectWallet();
-              }}
-              label="Disconnect Wallet"
-              className=" px-4 !bg-red-500 "
-            />
-          ) : (
-            <Button
-              onClick={() => {
-                requestMetamask();
-              }}
-              label="Connect Wallet"
-              className="px-4 !bg-green-500 "
-            ></Button>
-          )}
-        </div>
-        <div>
-          {walletAddress ? (
-            `Wallet Address:  ${walletAddress}`
-          ) : (
-            <div className=" text-center ">
-              You are not Connected. Please connect your metamask wallet !
-            </div>
-          )}
-        </div>
-
-        <div>
-          Token Addres :{" "}
-          <a
-            className=" text-blue-600 "
-            href={`https://mumbai.polygonscan.com/address/${tokenAddress}`}
-            target="_blank"
-          >
-            {tokenAddress}
-          </a>
-        </div>
-        <div>
-          {" "}
-          Staking Contract Address :{" "}
-          <a
-            className=" text-blue-600 "
-            href={`https://mumbai.polygonscan.com/address/${stakingContractAddress}`}
-            target="_blank"
-          >
-            {stakingContractAddress}
-          </a>{" "}
-        </div>
+        <ConnectWallet
+          connected={connected}
+          disconnectWallet={disconnectWallet}
+          requestMetamask={requestMetamask}
+          className="flex justify-center"
+        />
+        <WalletDetails walletAddress={walletAddress} />
+        <ContractDetails />
       </div>
 
       {connected && (

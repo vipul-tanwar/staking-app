@@ -39,3 +39,9 @@ export interface StakerInfoInter{
   claimCheckpoint: BigNumber;
   totalRewardsClaimed: BigNumber;
 }
+export interface ConnectWalletProps {
+  connected: Boolean;
+  disconnectWallet: () => void;
+  requestMetamask: () => void;
+  className?: string;
+}
