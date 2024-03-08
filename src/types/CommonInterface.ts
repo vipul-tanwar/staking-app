@@ -16,7 +16,7 @@ export interface RewardDetails {
 export interface ContractReadProps {
   provider: any;
   walletAddress: string;
-  rewardDetails : RewardDetails 
+  rewardDetails? : RewardDetails | null
 }
 
 export interface StakeDetailsInter {

@@ -31,6 +31,10 @@ const AppComponent = () => {
   const [rewardDetails, setRewardDetails] = useState<RewardDetails | null>();
   const [connected, setConnected] = useState<Boolean>(false);
 
+  const [loadStake, setLoadStake] = useState<Boolean>(false);
+  const [loadUnStake, setLoadUnStake] = useState<Boolean>(false);
+  const [loadClaim, setLoadClaim] = useState<Boolean>(false);
+
   async function getSigner(address: string) {
     try {
       const provider = new ethers.providers.Web3Provider(
@@ -38,9 +42,7 @@ const AppComponent = () => {
       );
       const signer = provider.getSigner(address);
       setSigner(signer);
-    } catch (_) {
-
-    }
+    } catch (_) {}
   }
 
   async function requestMetamask() {
@@ -58,7 +60,7 @@ const AppComponent = () => {
       }
       debugger;
     } else {
-      alert("MetaMask is not installed.")
+      alert("MetaMask is not installed.");
       console.log("MetaMask is not installed.");
     }
   }
@@ -73,6 +75,7 @@ const AppComponent = () => {
   }, []);
 
   async function getStakeToken() {
+    setLoadStake(true);
     await stakeTokens(
       amount,
       tokenAddress,
@@ -81,19 +84,24 @@ const AppComponent = () => {
       stakingContractAddress,
       stakingContractABI
     );
-    getRewardBalance()
+    setLoadStake(false);
+    getRewardBalance();
   }
   async function getUnstakeToken() {
+    setLoadUnStake(true);
     await unstakeTokens(stakingContractAddress, stakingContractABI, signer);
-    getRewardBalance()
+    setLoadUnStake(false);
+    getRewardBalance();
   }
   async function getClaimRewards() {
+    setLoadClaim(true);
     await claimRewards(stakingContractAddress, stakingContractABI, signer);
-    getRewardBalance()
+    setLoadClaim(false);
+    getRewardBalance();
   }
 
   async function getRewardBalance() {
-    setRewardDetails(null)
+    setRewardDetails(null);
     await showRewardBalance(
       stakingContractAddress,
       stakingContractABI,
@@ -176,18 +184,20 @@ const AppComponent = () => {
                 getStakeToken();
               }}
               label="Staking"
-              
+              isLoading={loadStake ? true : false}
             />
             <Button
               onClick={() => {
                 getUnstakeToken();
               }}
               label="UnStaking"
+              isLoading={loadUnStake ? true : false}
             />
             <Button
               onClick={() => {
                 getClaimRewards();
               }}
+              isLoading={loadClaim ? true : false}
               label="Claim Reward"
             />
           </div>
@@ -202,7 +212,11 @@ const AppComponent = () => {
         )}
       </div>
       {walletAddress && (
-        <ContractRead provider={provider} walletAddress={walletAddress} rewardDetails={rewardDetails} />
+        <ContractRead
+          provider={provider}
+          walletAddress={walletAddress}
+          rewardDetails={rewardDetails}
+        />
       )}
     </div>
   );

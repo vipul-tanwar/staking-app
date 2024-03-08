@@ -12,7 +12,7 @@ const Button = ({ label, onClick, className, isLoading }: ButtonProps) => {
     >
       {isLoading ? (
         <div className="flex justify-center items-center h  ">
-          <div className="animate-spin  rounded-full  h-10 w-10 border-b-4 border-white "></div>
+          <div className="animate-spin  rounded-full  h-6 w-6 border-b-4 border-white "></div>
         </div>
       ) : (
         label
