@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "../common/Button";
+import { FeaturesProps } from "@/types/LayoutInterface";
 
 const Features = ({
   connected,
@@ -8,13 +9,9 @@ const Features = ({
   getStakeToken,
   getUnstakeToken,
   getClaimRewards,
-  loadStake,
-  loadUnStake,
-  loadClaim,
-}: any) => {
+}: FeaturesProps) => {
   return (
     <div>
-      {" "}
       {connected && (
         <div className=" my-3 ">
           {" "}
@@ -31,21 +28,21 @@ const Features = ({
                 getStakeToken();
               }}
               label="Staking"
-              isLoading={loadStake ? true : false}
+              isLoading={true}
             />
             <Button
               onClick={() => {
                 getUnstakeToken();
               }}
               label="UnStaking"
-              isLoading={loadUnStake ? true : false}
+              isLoading={true}
             />
             <Button
               onClick={() => {
                 getClaimRewards();
               }}
-              isLoading={loadClaim ? true : false}
               label="Claim Reward"
+              isLoading={true}
             />
           </div>
         </div>

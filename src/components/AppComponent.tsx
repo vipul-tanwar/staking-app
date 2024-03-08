@@ -17,6 +17,7 @@ import {
 import ContractDetails from "./section/ContractDetails";
 import ConnectWallet from "./common/ConnectWallet";
 import WalletDetails from "./section/WalletDetails";
+import Features from "./section/Features";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
@@ -34,10 +35,7 @@ const AppComponent = () => {
   const [rewardDetails, setRewardDetails] = useState<RewardDetails | null>();
   const [connected, setConnected] = useState<Boolean>(false);
 
-  const [loadStake, setLoadStake] = useState<Boolean>(false);
-  const [loadUnStake, setLoadUnStake] = useState<Boolean>(false);
-  const [loadClaim, setLoadClaim] = useState<Boolean>(false);
-
+  
   async function getSigner(address: string) {
     try {
       const provider = new ethers.providers.Web3Provider(
@@ -78,7 +76,6 @@ const AppComponent = () => {
   }, []);
 
   async function getStakeToken() {
-    setLoadStake(true);
     await stakeTokens(
       amount,
       tokenAddress,
@@ -87,19 +84,14 @@ const AppComponent = () => {
       stakingContractAddress,
       stakingContractABI
     );
-    setLoadStake(false);
     getRewardBalance();
   }
   async function getUnstakeToken() {
-    setLoadUnStake(true);
     await unstakeTokens(stakingContractAddress, stakingContractABI, signer);
-    setLoadUnStake(false);
     getRewardBalance();
   }
   async function getClaimRewards() {
-    setLoadClaim(true);
     await claimRewards(stakingContractAddress, stakingContractABI, signer);
-    setLoadClaim(false);
     getRewardBalance();
   }
 
@@ -128,42 +120,15 @@ const AppComponent = () => {
         <WalletDetails walletAddress={walletAddress} />
         <ContractDetails />
       </div>
+      <Features
+        connected={connected}
+        amount={amount}
+        setAmount={setAmount}
+        getStakeToken={getStakeToken}
+        getUnstakeToken={getUnstakeToken}
+        getClaimRewards={getClaimRewards}
+      />
 
-      {connected && (
-        <div className=" my-3 ">
-          {" "}
-          <input
-            type="text"
-            placeholder="Amount to stake"
-            value={amount}
-            className="text-black w-full my-2 p-2"
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <div className=" grid grid-cols-3 gap-4 ">
-            <Button
-              onClick={() => {
-                getStakeToken();
-              }}
-              label="Staking"
-              isLoading={loadStake ? true : false}
-            />
-            <Button
-              onClick={() => {
-                getUnstakeToken();
-              }}
-              label="UnStaking"
-              isLoading={loadUnStake ? true : false}
-            />
-            <Button
-              onClick={() => {
-                getClaimRewards();
-              }}
-              isLoading={loadClaim ? true : false}
-              label="Claim Reward"
-            />
-          </div>
-        </div>
-      )}
       <div className=" my-3 ">
         {walletAddress && (
           <FunctionDetails
