@@ -19,6 +19,7 @@ const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadPr
     provider
   );
 
+  //Request getCallDetailsRead() detials from the contract
   async function getCallDetailsRead() {
     await getDetailsRead(contractInstance, setStakeDetails);
   }
@@ -27,7 +28,7 @@ const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadPr
     getCallDetailsRead();
   }, [rewardDetails]);
 
-
+  //Request getCallStakerInfoRead() detials from the contract
   async function getCallStakerInfoRead(walletAddress: string){
     await getStakerInfoRead(walletAddress, contractInstance, setStakerInfo);
   }

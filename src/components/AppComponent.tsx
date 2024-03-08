@@ -26,16 +26,18 @@ const AppComponent = () => {
   const stakingContractABI = stakingContractJson.abi;
 
   const provider = new ethers.providers.JsonRpcProvider(
-    "https://polygon-mumbai.infura.io/v3/219b1d1b9fd243aa9f83bf879622569d"
+    `https://polygon-mumbai.infura.io/v3/${process.env.NEXT_PUBLIC_RPC}`
   );
+  
 
+  debugger
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [signer, setSigner] = useState<Signer | null>(null);
   const [amount, setAmount] = useState<string>("");
   const [rewardDetails, setRewardDetails] = useState<RewardDetails | null>();
   const [connected, setConnected] = useState<Boolean>(false);
 
-  
+  //Get signer from the wallet
   async function getSigner(address: string) {
     try {
       const provider = new ethers.providers.Web3Provider(
@@ -46,6 +48,7 @@ const AppComponent = () => {
     } catch (_) {}
   }
 
+  //Request metamask for connect
   async function requestMetamask() {
     if (window.ethereum) {
       console.log("MetaMask is installed");
@@ -59,13 +62,13 @@ const AppComponent = () => {
       } catch (error) {
         console.error("Error : ", error);
       }
-      debugger;
     } else {
       alert("MetaMask is not installed.");
       console.log("MetaMask is not installed.");
     }
   }
 
+  //Wallet Disconnect Function
   function disconnectWallet() {
     setWalletAddress(null);
     setConnected(false);
@@ -75,6 +78,7 @@ const AppComponent = () => {
     requestMetamask();
   }, []);
 
+  //Stake Token Function
   async function getStakeToken() {
     await stakeTokens(
       amount,
@@ -86,15 +90,18 @@ const AppComponent = () => {
     );
     getRewardBalance();
   }
+  //UnStake Token Function
   async function getUnstakeToken() {
     await unstakeTokens(stakingContractAddress, stakingContractABI, signer);
     getRewardBalance();
   }
+  //Claim Reward Function
   async function getClaimRewards() {
     await claimRewards(stakingContractAddress, stakingContractABI, signer);
     getRewardBalance();
   }
 
+  // Request Reward Details from Contract
   async function getRewardBalance() {
     setRewardDetails(null);
     await showRewardBalance(
