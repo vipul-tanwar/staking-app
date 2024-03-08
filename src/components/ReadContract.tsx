@@ -8,80 +8,33 @@ import {
   StakeDetailsInter,
   StakerInfoInter,
 } from "@/types/CommonInterface";
+import { getDetailsRead, getStakerInfoRead } from "@/api/callReadContract";
 
-const ContractRead = ({ provider, walletAddress }: ContractReadProps) => {
+const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadProps) => {
   const [stakeDetails, setStakeDetails] = useState<StakeDetailsInter | null>();
-  const [stakerInfo, setStakerInfo]: any = useState<StakerInfoInter | null>();
-  const contractInstance: any = new ethers.Contract(
+  const [stakerInfo, setStakerInfo] = useState<StakerInfoInter | null>();
+  const contractInstance = new ethers.Contract(
     stakingContractJson.address,
     stakingContractJson.abi,
     provider
   );
 
-  async function getDetailsRead() {
-    try {
-      const [
-        isPaused,
-        resetClaimDelay,
-        stakeToken,
-        rewardToken,
-        startBlock,
-        endBlock,
-        claimDelay,
-        totalRewards,
-        totalFundsStaked,
-        totalRewardsDistributed,
-      ] = await contractInstance.getDetails();
-      setStakeDetails({
-        isPaused: isPaused,
-        resetClaimDelay: resetClaimDelay,
-        stakeToken: stakeToken,
-        rewardToken: rewardToken,
-        startBlock: startBlock,
-        endBlock: endBlock,
-        claimDelay: claimDelay,
-        totalRewards: totalRewards,
-        totalFundsStaked: totalFundsStaked,
-        totalRewardsDistributed: totalRewardsDistributed,
-      });
-    } catch (err) {
-      console.log("err", err);
-    }
+  async function getCallDetailsRead() {
+    await getDetailsRead(contractInstance, setStakeDetails);
   }
 
-  async function getStakerInfoRead(address: string) {
-    try {
-      const [
-        exist,
-        stakedAmount,
-        unclaimedRewards,
-        claimCheckpoint,
-        totalRewardsClaimed,
-      ] = await contractInstance.getStakerInfo(address);
-      const getDetails = await contractInstance.getDetails();
-      const claimCheckpointVal  = ethers.BigNumber.from(claimCheckpoint);
-      const claimDelayVal = ethers.BigNumber.from(getDetails.claimDelay);
-      const nextClaimTimesSum  = claimCheckpointVal.add(claimDelayVal);
-      const nextClaimTimes = ethers.utils.formatUnits(nextClaimTimesSum, 18);
+  useEffect(() => {
+    getCallDetailsRead();
+  }, [rewardDetails]);
 
-      setStakerInfo({
-        exist: exist,
-        stakedAmount: stakedAmount,
-        unclaimedRewards: unclaimedRewards,
-        claimCheckpoint: claimCheckpoint,
-        nextClaimTime: nextClaimTimes,
-        totalRewardsClaimed: totalRewardsClaimed,
-      });
-    } catch (err) {
-      console.log("err", err);
-    }
+
+  async function getCallStakerInfoRead(walletAddress: string){
+    await getStakerInfoRead(walletAddress, contractInstance, setStakerInfo);
   }
+
   useEffect(() => {
-    getDetailsRead();
-  }, []);
-  useEffect(() => {
-    getStakerInfoRead(walletAddress);
-  }, [walletAddress]);
+    getCallStakerInfoRead(walletAddress);
+  }, [walletAddress, rewardDetails]);
 
   return (
     <div className=" my-4 ">

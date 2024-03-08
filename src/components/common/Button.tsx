@@ -1,6 +1,6 @@
 import React from "react";
-import { ButtonProps } from "@/types/CompInterface";
 import Loader from "./Loader";
+import { ButtonProps } from "@/types/CommonInterface";
 
 const Button = ({ label, onClick, className, isLoading }: ButtonProps) => {
   return (

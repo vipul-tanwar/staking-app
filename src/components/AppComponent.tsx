@@ -8,6 +8,12 @@ import ContractRead from "./ReadContract";
 import Button from "./common/Button";
 import FunctionDetails from "./layout/FunctionDetails";
 import { RewardDetails } from "@/types/CommonInterface";
+import {
+  claimRewards,
+  showRewardBalance,
+  stakeTokens,
+  unstakeTokens,
+} from "@/api/callAppComponent";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
@@ -19,10 +25,11 @@ const AppComponent = () => {
     "https://polygon-mumbai.infura.io/v3/219b1d1b9fd243aa9f83bf879622569d"
   );
 
-  const [walletAddress, setWalletAddress] = useState<string>();
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [signer, setSigner] = useState<Signer | null>(null);
   const [amount, setAmount] = useState<string>("");
   const [rewardDetails, setRewardDetails] = useState<RewardDetails | null>();
+  const [connected, setConnected] = useState<Boolean>(false);
 
   async function getSigner(address: string) {
     try {
@@ -31,7 +38,9 @@ const AppComponent = () => {
       );
       const signer = provider.getSigner(address);
       setSigner(signer);
-    } catch (_) {}
+    } catch (_) {
+
+    }
   }
 
   async function requestMetamask() {
@@ -43,92 +52,54 @@ const AppComponent = () => {
         });
         setWalletAddress(accounts[0]);
         getSigner(accounts[0]);
+        setConnected(true);
       } catch (error) {
         console.error("Error : ", error);
       }
+      debugger;
     } else {
+      alert("MetaMask is not installed.")
       console.log("MetaMask is not installed.");
     }
+  }
+
+  function disconnectWallet() {
+    setWalletAddress(null);
+    setConnected(false);
   }
 
   useEffect(() => {
     requestMetamask();
   }, []);
 
-  async function stakeTokens() {
-    if (!amount) return alert("Please enter amount");
-    try {
-      const token = new ethers.Contract(tokenAddress, tokenABI, signer!);
-
-      const stakingContract = new ethers.Contract(
-        stakingContractAddress,
-        stakingContractABI,
-        signer!
-      );
-      const amountWei = amount;
-      // const amountWei = ethers.utils.parseUnits(amount, "ether");
-
-      let tx = await token.approve(stakingContractAddress, amountWei);
-      await tx.wait();
-
-      tx = await stakingContract.stake(amountWei);
-      await tx.wait();
-      alert(`Staked Tokens : ${amount}`);
-      console.log(`Staked Tokens : ${amount}`);
-    } catch (error) {
-      console.error(error);
-    }
+  async function getStakeToken() {
+    await stakeTokens(
+      amount,
+      tokenAddress,
+      tokenABI,
+      signer,
+      stakingContractAddress,
+      stakingContractABI
+    );
+    getRewardBalance()
   }
-
-  async function unstakeTokens() {
-    try {
-      const stakingContract = new ethers.Contract(
-        stakingContractAddress,
-        stakingContractABI,
-        signer!
-      );
-      debugger;
-      const txn = await stakingContract.unstake();
-      await txn.wait();
-      alert("Unstaked tokens");
-      console.log("Unstaked tokens");
-    } catch (error) {
-      console.log(error);
-    }
+  async function getUnstakeToken() {
+    await unstakeTokens(stakingContractAddress, stakingContractABI, signer);
+    getRewardBalance()
   }
-
-  async function claimRewards() {
-    try {
-      const stakingContract = new ethers.Contract(
-        stakingContractAddress,
-        stakingContractABI,
-        signer!
-      );
-      const txn = await stakingContract.claimRewards();
-      await txn.wait();
-      console.log("Claimed rewards");
-    } catch (error) {
-      console.log(error);
-    }
+  async function getClaimRewards() {
+    await claimRewards(stakingContractAddress, stakingContractABI, signer);
+    getRewardBalance()
   }
 
   async function getRewardBalance() {
-    try {
-      const stakingContract = new ethers.Contract(
-        stakingContractAddress,
-        stakingContractABI,
-        signer!
-      );
-      const rewardDetails = await stakingContract.getRewardDetails();
-
-      setRewardDetails({
-        accRewardPerShare: rewardDetails.accRewardPerShare,
-        lastCheckpoint: rewardDetails.lastCheckpoint,
-        rewardPerBlock: rewardDetails.rewardPerBlock,
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    setRewardDetails(null)
+    await showRewardBalance(
+      stakingContractAddress,
+      stakingContractABI,
+      signer,
+      setRewardDetails
+    );
   }
   useEffect(() => {
     getRewardBalance();
@@ -137,7 +108,35 @@ const AppComponent = () => {
   return (
     <div className=" py-4">
       <div className=" flex flex-col gap-2 ">
-        <div>Wallet Address: {walletAddress}</div>
+        <div className=" flex justify-center ">
+          {connected ? (
+            <Button
+              onClick={() => {
+                disconnectWallet();
+              }}
+              label="Disconnect Wallet"
+              className=" px-4 !bg-red-500 "
+            />
+          ) : (
+            <Button
+              onClick={() => {
+                requestMetamask();
+              }}
+              label="Connect Wallet"
+              className="px-4 !bg-green-500 "
+            ></Button>
+          )}
+        </div>
+        <div>
+          {walletAddress ? (
+            `Wallet Address:  ${walletAddress}`
+          ) : (
+            <div className=" text-center ">
+              You are not Connected. Please connect your metamask wallet !
+            </div>
+          )}
+        </div>
+
         <div>
           Token Addres :{" "}
           <a
@@ -160,51 +159,40 @@ const AppComponent = () => {
           </a>{" "}
         </div>
       </div>
-      {/* <button
-        onClick={() => {
-          requestMetamask();
-        }}
-      >
-        Connet Wallet
-      </button> */}
-      <div className=" my-3 ">
-        {" "}
-        <input
-          type="text"
-          placeholder="Amount to stake"
-          value={amount}
-          className="text-black w-full my-2 p-2"
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <div className=" grid grid-cols-3 gap-4 ">
-          <Button
-            onClick={() => {
-              stakeTokens();
-            }}
-            label="Staking"
+
+      {connected && (
+        <div className=" my-3 ">
+          {" "}
+          <input
+            type="text"
+            placeholder="Amount to stake"
+            value={amount}
+            className="text-black w-full my-2 p-2"
+            onChange={(e) => setAmount(e.target.value)}
           />
-          <Button
-            onClick={() => {
-              unstakeTokens();
-            }}
-            label="Unstaking"
-          />
-          <Button
-            onClick={() => {
-              claimRewards();
-            }}
-            label="Claim Reward"
-          />
+          <div className=" grid grid-cols-3 gap-4 ">
+            <Button
+              onClick={() => {
+                getStakeToken();
+              }}
+              label="Staking"
+              
+            />
+            <Button
+              onClick={() => {
+                getUnstakeToken();
+              }}
+              label="UnStaking"
+            />
+            <Button
+              onClick={() => {
+                getClaimRewards();
+              }}
+              label="Claim Reward"
+            />
+          </div>
         </div>
-      </div>
-      {/* <button
-        className="text-green-500 font-bold  "
-        onClick={() => {
-          getRewardBalance();
-        }}
-      >
-        Detdetails
-      </button> */}
+      )}
       <div className=" my-3 ">
         {walletAddress && (
           <FunctionDetails
@@ -214,7 +202,7 @@ const AppComponent = () => {
         )}
       </div>
       {walletAddress && (
-        <ContractRead provider={provider} walletAddress={walletAddress} />
+        <ContractRead provider={provider} walletAddress={walletAddress} rewardDetails={rewardDetails} />
       )}
     </div>
   );
