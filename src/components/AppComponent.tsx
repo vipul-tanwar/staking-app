@@ -18,6 +18,7 @@ import ContractDetails from "./section/ContractDetails";
 import ConnectWallet from "./common/ConnectWallet";
 import WalletDetails from "./section/WalletDetails";
 import Features from "./section/Features";
+import { polygonMumbai } from "@/data/network";
 
 const AppComponent = () => {
   const tokenAddress = tokenContractJson.address;
@@ -28,9 +29,8 @@ const AppComponent = () => {
   const provider = new ethers.providers.JsonRpcProvider(
     `https://polygon-mumbai.infura.io/v3/${process.env.NEXT_PUBLIC_RPC}`
   );
-  
 
-  debugger
+  debugger;
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [signer, setSigner] = useState<Signer | null>(null);
   const [amount, setAmount] = useState<string>("");
@@ -53,14 +53,40 @@ const AppComponent = () => {
     if (window.ethereum) {
       console.log("MetaMask is installed");
       try {
+        //Request metamask switch network to Polygon Mumbai
+        await (window.ethereum as ExternalProvider).request!({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: ethers.utils.hexValue(80001) }],
+        });
+        //Get accounts from metamask wallet
         const accounts = await (window.ethereum as ExternalProvider).request!({
           method: "eth_requestAccounts",
         });
         setWalletAddress(accounts[0]);
         getSigner(accounts[0]);
         setConnected(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error : ", error);
+        if (error.code === 4902) {
+          console.log("error.code === 490");
+          try {
+            await (window.ethereum as ExternalProvider).request!({
+              method: "wallet_addEthereumChain",
+              params: [polygonMumbai],
+            });
+            const accounts = await (window.ethereum as ExternalProvider)
+              .request!({
+              method: "eth_requestAccounts",
+            });
+            setWalletAddress(accounts[0]);
+            getSigner(accounts[0]);
+            setConnected(true);
+          } catch (_) {
+            console.log("Failed to add the network");
+          }
+        } else {
+          console.log("Failed to switch the network");
+        }
       }
     } else {
       alert("MetaMask is not installed.");
