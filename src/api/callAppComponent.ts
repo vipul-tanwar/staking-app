@@ -26,8 +26,8 @@ export async function stakeTokens(
     txn = await stakingContract.stake(amountWei);
     await txn.wait();
     
-    alert(`Staked Tokens : ${amount}`);
-    console.log(`Staked Tokens : ${amount}`);
+    alert(`Staked Tokens : ${parseFloat(amount)/1000000}`);
+    console.log(`Staked Tokens : ${parseFloat(amount)/1000000}`);
   } catch (error) {
     alert(error);
     console.log(error);

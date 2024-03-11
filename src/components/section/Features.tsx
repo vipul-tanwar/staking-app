@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "../common/Button";
 import { FeaturesProps } from "@/types/LayoutInterface";
 
@@ -10,17 +10,25 @@ const Features = ({
   getUnstakeToken,
   getClaimRewards,
 }: FeaturesProps) => {
+  const [inputValue, setInputValue] = useState<number>();
+
+  const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(parseFloat(value));
+    setAmount(value ? parseFloat(value) * 1000000 : 0);
+  };
+
   return (
     <div>
       {connected && (
         <div className=" my-3 ">
           {" "}
           <input
-            type="text"
+            type="number"
             placeholder="Amount to stake"
-            value={amount}
+            value={inputValue}
             className="text-black w-full my-2 p-2"
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={inputChange}
           />
           <div className=" grid grid-cols-3 gap-4 ">
             <Button
