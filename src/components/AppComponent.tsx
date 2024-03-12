@@ -54,7 +54,7 @@ const AppComponent = () => {
       method: "eth_requestAccounts",
     });
     setWalletAddress(accounts[0]);
-    getSigner(accounts[0]);
+    await getSigner(accounts[0]);
     setConnected(true);
   }
 
@@ -69,7 +69,7 @@ const AppComponent = () => {
           params: [{ chainId: ethers.utils.hexValue(80001) }],
         });
         //Get accounts from metamask wallet
-        HandleWalletState();
+        await HandleWalletState();
       } catch (error: any) {
         console.error("Error : ", error);
         if (error.code === 4902) {
@@ -80,7 +80,7 @@ const AppComponent = () => {
               method: "wallet_addEthereumChain",
               params: [polygonMumbai],
             });
-            HandleWalletState();
+            await HandleWalletState();
           } catch (_) {
             console.log("Failed to add the network");
           }
