@@ -48,6 +48,16 @@ const AppComponent = () => {
     } catch (_) {}
   }
 
+  //Get wallet address and call wallet signer
+  async function HandleWalletState() {
+    const accounts = await (window.ethereum as ExternalProvider).request!({
+      method: "eth_requestAccounts",
+    });
+    setWalletAddress(accounts[0]);
+    getSigner(accounts[0]);
+    setConnected(true);
+  }
+
   //Request metamask for connect
   async function requestMetamask() {
     if (window.ethereum) {
@@ -59,28 +69,18 @@ const AppComponent = () => {
           params: [{ chainId: ethers.utils.hexValue(80001) }],
         });
         //Get accounts from metamask wallet
-        const accounts = await (window.ethereum as ExternalProvider).request!({
-          method: "eth_requestAccounts",
-        });
-        setWalletAddress(accounts[0]);
-        getSigner(accounts[0]);
-        setConnected(true);
+        HandleWalletState();
       } catch (error: any) {
         console.error("Error : ", error);
         if (error.code === 4902) {
           console.log("error.code === 490");
           try {
+            //Request metamask to add Polygon mumbai if not added
             await (window.ethereum as ExternalProvider).request!({
               method: "wallet_addEthereumChain",
               params: [polygonMumbai],
             });
-            const accounts = await (window.ethereum as ExternalProvider)
-              .request!({
-              method: "eth_requestAccounts",
-            });
-            setWalletAddress(accounts[0]);
-            getSigner(accounts[0]);
-            setConnected(true);
+            HandleWalletState();
           } catch (_) {
             console.log("Failed to add the network");
           }
