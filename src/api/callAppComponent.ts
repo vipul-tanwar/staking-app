@@ -25,9 +25,9 @@ export async function stakeTokens(
 
     txn = await stakingContract.stake(amountWei);
     await txn.wait();
-    
-    alert(`Staked Tokens : ${parseFloat(amount)/1000000}`);
-    console.log(`Staked Tokens : ${parseFloat(amount)/1000000}`);
+
+    alert(`Staked Tokens : ${parseFloat(amount) / 1000000}`);
+    console.log(`Staked Tokens : ${parseFloat(amount) / 1000000}`);
   } catch (error) {
     alert(error);
     console.log(error);
@@ -79,8 +79,7 @@ export async function claimRewards(
 export async function showRewardBalance(
   stakingContractAddress: string,
   stakingContractABI: any[],
-  signer: ethers.Signer | null,
-  setRewardDetails : Function
+  signer: ethers.Signer | null
 ) {
   try {
     const stakingContract = new ethers.Contract(
@@ -90,12 +89,11 @@ export async function showRewardBalance(
     );
     const rewardDetails = await stakingContract.getRewardDetails();
 
-    setRewardDetails({
+    return {
       accRewardPerShare: rewardDetails.accRewardPerShare,
       lastCheckpoint: rewardDetails.lastCheckpoint,
       rewardPerBlock: rewardDetails.rewardPerBlock,
-    });
-
+    };
   } catch (error) {
     console.log(error);
   }

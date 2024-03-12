@@ -130,12 +130,12 @@ const AppComponent = () => {
   // Request Reward Details from Contract
   async function getRewardBalance() {
     setRewardDetails(null);
-    await showRewardBalance(
+    const getReward = await showRewardBalance(
       stakingContractAddress,
       stakingContractABI,
-      signer,
-      setRewardDetails
+      signer
     );
+    setRewardDetails(getReward);
   }
   useEffect(() => {
     getRewardBalance();
