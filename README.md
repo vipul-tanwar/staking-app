@@ -51,3 +51,7 @@ my-nextjs-app/
 └── README.md            # Project readme
 ```
 <!-- │   ├── index.js         # Home page -->
+
+Package Version
+1. Nextjs : 14.1.2
+2. Ethers : 5.7
