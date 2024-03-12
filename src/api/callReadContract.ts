@@ -5,10 +5,7 @@ interface GetDetailsReadParams {
   setStakeDetails: (details: StakeDetailsInter | null) => void;
 }
 
-export async function getDetailsRead(
-  contractInstance: Contract,
-  setStakeDetails: Function
-) {
+export async function getDetailsRead(contractInstance: Contract) {
   try {
     const [
       isPaused,
@@ -22,7 +19,7 @@ export async function getDetailsRead(
       totalFundsStaked,
       totalRewardsDistributed,
     ] = await contractInstance.getDetails();
-    setStakeDetails({
+    return {
       isPaused: isPaused,
       resetClaimDelay: resetClaimDelay,
       stakeToken: stakeToken,
@@ -33,7 +30,7 @@ export async function getDetailsRead(
       totalRewards: totalRewards,
       totalFundsStaked: totalFundsStaked,
       totalRewardsDistributed: totalRewardsDistributed,
-    });
+    };
   } catch (err) {
     console.log("err", err);
   }
@@ -42,7 +39,6 @@ export async function getDetailsRead(
 export async function getStakerInfoRead(
   address: string,
   contractInstance: Contract,
-  setStakerInfo: Function
 ) {
   try {
     const [
@@ -57,14 +53,14 @@ export async function getStakerInfoRead(
     const claimDelayVal = ethers.BigNumber.from(getDetails.claimDelay);
     const nextClaimTimesSum = claimCheckpointVal.add(claimDelayVal);
     const nextClaimTimes = ethers.utils.formatUnits(nextClaimTimesSum, 18);
-    setStakerInfo({
+    return {
       exist: exist,
       stakedAmount: stakedAmount,
       unclaimedRewards: unclaimedRewards,
       claimCheckpoint: claimCheckpoint,
       nextClaimTime: nextClaimTimes,
       totalRewardsClaimed: totalRewardsClaimed,
-    });
+    };
   } catch (err) {
     console.log("err", err);
   }

@@ -10,7 +10,11 @@ import {
 } from "@/types/CommonInterface";
 import { getDetailsRead, getStakerInfoRead } from "@/api/callReadContract";
 
-const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadProps) => {
+const ContractRead = ({
+  provider,
+  walletAddress,
+  rewardDetails,
+}: ContractReadProps) => {
   const [stakeDetails, setStakeDetails] = useState<StakeDetailsInter | null>();
   const [stakerInfo, setStakerInfo] = useState<StakerInfoInter | null>();
   const contractInstance = new ethers.Contract(
@@ -21,7 +25,8 @@ const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadPr
 
   //Request getCallDetailsRead() detials from the contract
   async function getCallDetailsRead() {
-    await getDetailsRead(contractInstance, setStakeDetails);
+    const callData = await getDetailsRead(contractInstance);
+    setStakeDetails(callData);
   }
 
   useEffect(() => {
@@ -29,8 +34,12 @@ const ContractRead = ({ provider, walletAddress, rewardDetails }: ContractReadPr
   }, [rewardDetails]);
 
   //Request getCallStakerInfoRead() detials from the contract
-  async function getCallStakerInfoRead(walletAddress: string){
-    await getStakerInfoRead(walletAddress, contractInstance, setStakerInfo);
+  async function getCallStakerInfoRead(walletAddress: string) {
+    const callStakeInfo = await getStakerInfoRead(
+      walletAddress,
+      contractInstance
+    );
+    setStakerInfo(callStakeInfo);
   }
 
   useEffect(() => {
